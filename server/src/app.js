@@ -18,7 +18,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+const authRouter = require('./routes/auth').router;
+
 // Routes
+app.use('/api/auth', authRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 

@@ -1,18 +1,39 @@
 import { useState, useEffect } from 'react';
 import ProductCard from './components/ProductCard';
 import CartSidebar from './components/CartSidebar';
+import AuthModal from './components/AuthModal';
 
 const API = import.meta.env.VITE_API_URL || '';
 
 function App() {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState([]);
+  
   const [cartOpen, setCartOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('shopsmart_token') || null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
-
   const [toast, setToast] = useState('');
+
+  // Auto-login with token
+  useEffect(() => {
+    if (token) {
+      fetch(`${API}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.user) setUser(data.user);
+          else handleLogout();
+        })
+        .catch(() => handleLogout());
+    }
+  }, [token]);
 
   // Load products
   useEffect(() => {
@@ -22,23 +43,59 @@ function App() {
       .catch(() => { setError('Failed to load products'); setLoading(false); });
   }, []);
 
-  // Load cart
+  // Load cart if logged in
   useEffect(() => {
-    fetch(`${API}/api/cart`)
+    if (!token) {
+      setCartItems([]);
+      return;
+    }
+    fetch(`${API}/api/cart`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then((r) => r.json())
       .then(setCartItems)
       .catch(() => {});
-  }, []);
+  }, [token]);
+
+  const handleLogin = (userData, userToken) => {
+    setUser(userData);
+    setToken(userToken);
+    localStorage.setItem('shopsmart_token', userToken);
+    setAuthOpen(false);
+    setToast(`Welcome back, ${userData.name}!`);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('shopsmart_token');
+    setCartItems([]);
+  };
 
   const handleAddToCart = (product) => {
+    if (!token) {
+      setAuthOpen(true);
+      return;
+    }
+
     fetch(`${API}/api/cart`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}` 
+      },
       body: JSON.stringify({ productId: product.id, quantity: 1 }),
     })
       .then((r) => r.json())
       .then((item) => {
-        setCartItems((prev) => [...prev, item]);
+        setCartItems((prev) => {
+          const exists = prev.find(i => i.productId === item.productId);
+          if (exists) {
+            return prev.map(i => i.productId === item.productId ? item : i);
+          }
+          return [...prev, item];
+        });
         setToast(`Added ${product.name} to cart!`);
         setTimeout(() => setToast(''), 3000);
       })
@@ -46,7 +103,10 @@ function App() {
   };
 
   const handleRemoveFromCart = (cartItemId) => {
-    fetch(`${API}/api/cart/${cartItemId}`, { method: 'DELETE' })
+    fetch(`${API}/api/cart/${cartItemId}`, { 
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(() => setCartItems((prev) => prev.filter((i) => i.id !== cartItemId)))
       .catch(() => {});
   };
@@ -65,9 +125,23 @@ function App() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <button className="btn btn-cart" onClick={() => setCartOpen(true)}>
-          🛒 Cart <span className="cart-count">{cartItems.length}</span>
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {user ? (
+            <button className="btn" onClick={handleLogout} style={{ background: 'transparent', color: 'var(--text-muted)'}}>
+              Logout
+            </button>
+          ) : (
+            <button className="btn btn-primary" onClick={() => setAuthOpen(true)}>
+              Login
+            </button>
+          )}
+          <button className="btn btn-cart" onClick={() => {
+            if (!user) setAuthOpen(true);
+            else setCartOpen(true);
+          }}>
+            🛒 Cart <span className="cart-count">{cartItems.length}</span>
+          </button>
+        </div>
       </header>
 
       <main className="main">
@@ -88,6 +162,14 @@ function App() {
           cartItems={cartItems}
           onRemove={handleRemoveFromCart}
           onClose={() => setCartOpen(false)}
+        />
+      )}
+
+      {authOpen && (
+        <AuthModal 
+          onClose={() => setAuthOpen(false)} 
+          onLogin={handleLogin}
+          api={API}
         />
       )}
 

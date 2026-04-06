@@ -17,6 +17,14 @@ function getDb() {
 // Idempotent: CREATE TABLE IF NOT EXISTS — safe to run multiple times
 function initSchema() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      name      TEXT    NOT NULL,
+      email     TEXT    NOT NULL UNIQUE,
+      password  TEXT    NOT NULL,
+      createdAt TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS products (
       id        INTEGER PRIMARY KEY AUTOINCREMENT,
       name      TEXT    NOT NULL,
@@ -30,6 +38,7 @@ function initSchema() {
 
     CREATE TABLE IF NOT EXISTS cart_items (
       id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       productId  INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
       quantity   INTEGER NOT NULL DEFAULT 1 CHECK(quantity > 0),
       addedAt    TEXT    NOT NULL DEFAULT (datetime('now'))
