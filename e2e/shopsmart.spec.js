@@ -33,9 +33,24 @@ test.describe('ShopSmart E2E', () => {
     await expect(page.getByText('Orange')).not.toBeVisible();
   });
 
-  test('user flow: add product to cart → view cart → remove item', async ({ page, request }) => {
+  test('user flow: login → add product to cart → view cart → remove item', async ({ page, request }) => {
     await seedProduct(request, { name: 'Cart Test Item', price: 5, category: 'test', stock: 10 });
+    
+    // Create an auth user directly via API for this test
+    await request.post('http://localhost:5001/api/auth/register', {
+      data: { name: 'E2E User', email: 'e2e@test.com', password: 'password123' },
+    });
+
     await page.goto('/');
+
+    // Login flow
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByPlaceholder('Email Address').fill('e2e@test.com');
+    await page.getByPlaceholder('Password').fill('password123');
+    await page.locator('.auth-form').getByRole('button', { name: 'Login' }).click();
+
+    // Give the login time to register and modal to close
+    await expect(page.getByText('Logout')).toBeVisible();
 
     // Add to cart
     await page.getByText('Cart Test Item').waitFor();
@@ -53,7 +68,22 @@ test.describe('ShopSmart E2E', () => {
 
   test('cart count updates after adding item', async ({ page, request }) => {
     await seedProduct(request, { name: 'Counter Item', price: 1, category: 'test', stock: 5 });
+    
+    // Create second auth user directly via API for this test
+    await request.post('http://localhost:5001/api/auth/register', {
+      data: { name: 'E2E User 2', email: 'e2e2@test.com', password: 'password123' },
+    });
+
     await page.goto('/');
+
+    // Login flow
+    await page.getByRole('button', { name: 'Login' }).click();
+    await page.getByPlaceholder('Email Address').fill('e2e2@test.com');
+    await page.getByPlaceholder('Password').fill('password123');
+    await page.locator('.auth-form').getByRole('button', { name: 'Login' }).click();
+
+    await expect(page.getByText('Logout')).toBeVisible();
+
     await page.getByText('Counter Item').waitFor();
 
     const card = page.locator('.product-card', { hasText: 'Counter Item' });

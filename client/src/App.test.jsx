@@ -7,6 +7,18 @@ const mockProducts = [
   { id: 2, name: 'Banana', price: 0.8, category: 'fruit', stock: 0 },
 ];
 
+const localStorageMock = {
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+});
+
 beforeEach(() => {
   globalThis.fetch = vi.fn((url) => {
     if (url.includes('/api/products')) {
@@ -48,9 +60,9 @@ describe('App', () => {
     expect(screen.queryByText('Banana')).not.toBeInTheDocument();
   });
 
-  it('opens cart sidebar when cart button clicked', async () => {
+  it('opens auth modal when cart button clicked while logged out', async () => {
     render(<App />);
-    fireEvent.click(screen.getByText(/Cart/i));
-    expect(screen.getByText('Your cart is empty')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Cart/i }));
+    expect(screen.getByText('Welcome Back')).toBeInTheDocument();
   });
 });

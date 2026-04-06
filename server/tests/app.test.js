@@ -14,7 +14,7 @@ const { getDb, closeDb } = require('../src/db/database');
 
 beforeEach(() => {
   const db = getDb();
-  db.exec('DELETE FROM cart_items; DELETE FROM products;');
+  db.exec('DELETE FROM cart_items; DELETE FROM products; DELETE FROM users;');
 });
 
 afterAll(() => {
@@ -87,35 +87,47 @@ describe('Products API', () => {
 // Integration: Cart + Products
 describe('Cart API (integration with Products)', () => {
   let productId;
+  let token;
 
   beforeEach(async () => {
+    const authRes = await request(app).post('/api/auth/register').send({
+      name: 'Test', email: 'test@example.com', password: 'password123'
+    });
+    token = authRes.body.token;
+
     const res = await request(app).post('/api/products').send({ name: 'Test Item', price: 9.99, stock: 10 });
     productId = res.body.id;
   });
 
   it('GET /api/cart returns empty initially', async () => {
-    const res = await request(app).get('/api/cart');
+    const res = await request(app).get('/api/cart').set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual([]);
   });
 
   it('POST /api/cart adds a product to cart', async () => {
-    const res = await request(app).post('/api/cart').send({ productId, quantity: 2 });
+    const res = await request(app)
+      .post('/api/cart')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId, quantity: 2 });
     expect(res.statusCode).toBe(201);
     expect(res.body.quantity).toBe(2);
     expect(res.body.name).toBe('Test Item');
   });
 
   it('POST /api/cart returns 404 for non-existent product', async () => {
-    const res = await request(app).post('/api/cart').send({ productId: 9999 });
+    const res = await request(app)
+      .post('/api/cart')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ productId: 9999 });
     expect(res.statusCode).toBe(404);
   });
 
   it('DELETE /api/cart/:id removes item from cart', async () => {
-    const add = await request(app).post('/api/cart').send({ productId });
-    const del = await request(app).delete(`/api/cart/${add.body.id}`);
+    const add = await request(app).post('/api/cart').set('Authorization', `Bearer ${token}`).send({ productId });
+    const del = await request(app).delete(`/api/cart/${add.body.id}`).set('Authorization', `Bearer ${token}`);
     expect(del.statusCode).toBe(200);
-    const cart = await request(app).get('/api/cart');
+    const cart = await request(app).get('/api/cart').set('Authorization', `Bearer ${token}`);
     expect(cart.body).toEqual([]);
   });
 });
