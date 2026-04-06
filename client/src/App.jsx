@@ -12,6 +12,8 @@ function App() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState('');
 
+  const [toast, setToast] = useState('');
+
   // Load products
   useEffect(() => {
     fetch(`${API}/api/products`)
@@ -35,7 +37,11 @@ function App() {
       body: JSON.stringify({ productId: product.id, quantity: 1 }),
     })
       .then((r) => r.json())
-      .then((item) => setCartItems((prev) => [...prev, item]))
+      .then((item) => {
+        setCartItems((prev) => [...prev, item]);
+        setToast(`Added ${product.name} to cart!`);
+        setTimeout(() => setToast(''), 3000);
+      })
       .catch(() => {});
   };
 
@@ -60,7 +66,7 @@ function App() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <button className="btn btn-cart" onClick={() => setCartOpen(true)}>
-          Cart <span className="cart-count">{cartItems.length}</span>
+          🛒 Cart <span className="cart-count">{cartItems.length}</span>
         </button>
       </header>
 
@@ -84,6 +90,8 @@ function App() {
           onClose={() => setCartOpen(false)}
         />
       )}
+
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 }

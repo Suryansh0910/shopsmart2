@@ -23,6 +23,7 @@ function initSchema() {
       price     REAL    NOT NULL CHECK(price >= 0),
       category  TEXT    NOT NULL DEFAULT 'general',
       stock     INTEGER NOT NULL DEFAULT 0 CHECK(stock >= 0),
+      imageUrl  TEXT,
       createdAt TEXT    NOT NULL DEFAULT (datetime('now')),
       updatedAt TEXT    NOT NULL DEFAULT (datetime('now'))
     );
