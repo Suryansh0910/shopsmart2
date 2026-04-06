@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 function ProductCard({ product, onAddToCart }) {
   return (
     <div className="product-card">
@@ -17,5 +19,16 @@ function ProductCard({ product, onAddToCart }) {
     </div>
   );
 }
+
+ProductCard.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.number,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    category: PropTypes.string,
+    stock: PropTypes.number,
+  }).isRequired,
+  onAddToCart: PropTypes.func.isRequired,
+};
 
 export default ProductCard;

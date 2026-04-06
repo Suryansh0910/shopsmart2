@@ -8,7 +8,7 @@ const mockProducts = [
 ];
 
 beforeEach(() => {
-  global.fetch = vi.fn((url) => {
+  globalThis.fetch = vi.fn((url) => {
     if (url.includes('/api/products')) {
       return Promise.resolve({ json: () => Promise.resolve(mockProducts) });
     }

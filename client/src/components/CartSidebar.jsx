@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 function CartSidebar({ cartItems, onRemove, onClose }) {
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -38,5 +40,18 @@ function CartSidebar({ cartItems, onRemove, onClose }) {
     </div>
   );
 }
+
+CartSidebar.propTypes = {
+  cartItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+      price: PropTypes.number,
+      quantity: PropTypes.number,
+    })
+  ).isRequired,
+  onRemove: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 export default CartSidebar;

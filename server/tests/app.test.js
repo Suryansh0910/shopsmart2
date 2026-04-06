@@ -19,7 +19,7 @@ beforeEach(() => {
 
 afterAll(() => {
   closeDb();
-  try { fs.unlinkSync(TEST_DB); } catch (_) {}
+  try { fs.unlinkSync(TEST_DB); } catch (_) { /* ignore cleanup errors */ }
 });
 
 // Health
