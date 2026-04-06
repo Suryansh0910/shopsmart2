@@ -1,20 +1,15 @@
 name: Deploy to AWS EC2
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
     name: SSH Deploy to EC2
     runs-on: ubuntu-latest
-    needs: []   # add: [backend, frontend] if you want CI to pass first
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy via SSH to EC2
+      - uses: actions/checkout@v4
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
