@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const productsRouter = require('./routes/products');
 const cartRouter = require('./routes/cart');
 
@@ -25,9 +26,17 @@ app.use('/api/auth', authRouter);
 app.use('/api/products', productsRouter);
 app.use('/api/cart', cartRouter);
 
-// Root
-app.get('/', (req, res) => {
+// Root (now replaced by static frontend, but kept for /api prefix if needed)
+app.get('/api', (req, res) => {
   res.send('ShopSmart Backend Service');
+});
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../../client/dist')));
+
+// Catch-all to serve index.html for React Router
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 });
 
 // 404 handler

@@ -31,6 +31,7 @@ ProductCard.propTypes = {
     price: PropTypes.number.isRequired,
     category: PropTypes.string,
     stock: PropTypes.number,
+    imageUrl: PropTypes.string,
   }).isRequired,
   onAddToCart: PropTypes.func.isRequired,
 };
