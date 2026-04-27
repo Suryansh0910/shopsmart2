@@ -4,7 +4,8 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
   "memory": "512",
-  "executionRoleArn": "arn:aws:iam::123456789012:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::272531994259:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::272531994259:role/LabRole",
   "containerDefinitions": [
     {
       "name": "shopsmart-app",
@@ -26,7 +27,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/shopsmart-app",
-          "awslogs-region": "ap-south-1",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
       }
